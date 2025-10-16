@@ -97,9 +97,10 @@ void AtualizaDirecao(Jogo *j){
 
 // renomeado a variaveis para receber o corpo da cobra como lista j->snake->body
 void AtualizaPosBody(Jogo *j){
+// Precisa Implementar a lista para inserir no primeiro e apagar no ultimo
 
-    if (j->snake->body.direcao == 0){
-        j->snake->body.pos.y -= STD_SIZE_Y;
+    /*if (j->snake->body.direcao == 0){
+        j->snake->body.pos. -= STD_SIZE_Y;
     }
     if (j->snake->body.direcao == 1){
         j->snake->body.pos.x += STD_SIZE_X;
@@ -109,7 +110,7 @@ void AtualizaPosBody(Jogo *j){
     }
     if (j->snake->body.direcao == 3){
         j->snake->body.pos.x -= STD_SIZE_X;
-    }
+    } */
 }
 
 void AtualizaRodada(Jogo *j){
@@ -126,6 +127,7 @@ void AtualizaRodada(Jogo *j){
 int ColisaoFood(Jogo *j){
     if (CheckCollisionRecs(j->snake->body.pos, j->food.pos)){
         IniciaFood(j);
+        AumentaBody(j);
     }
     return 0;
 }
@@ -138,5 +140,29 @@ int ColisaoBorda(Jogo *j){
     }
     return 0;
 }
+
+// função para aumentar o tamanho da cobra ao contrario do que ela come a maçã
+void AumentaBody(Jogo *j){
+    Celula* NovoPos = (Celula*)malloc(sizeof(Celula));
+    NovoPos->body.color = SNAKE_COLOR;
+
+    if (j->snake->body.direcao == 0){
+        NovoPos->body.pos.y += STD_SIZE_Y;
+    }
+
+    if (j->snake->body.direcao == 1){
+        NovoPos->body.pos.x -= STD_SIZE_X;
+    }
+
+    if (j->snake->body.direcao == 2){
+        NovoPos->body.pos.y -= STD_SIZE_Y;
+    }
+    
+    if (j->snake->body.direcao == 3){
+        NovoPos->body.pos.x += STD_SIZE_X;
+    }
+    NovoPos->body.prox = NULL;
+}
+
 
 
