@@ -1,4 +1,4 @@
-CC = gccmake
+CC = gcc
 CFLAGS = -Wall -g
 TARGET = snake
 
