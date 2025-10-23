@@ -200,8 +200,20 @@ void AumentaBody(Jogo *j){
         NovoPos->body.pos.y -= STD_SIZE_Y;
     } 
     else if(direcao_rabo == 3){
-        NovoPos->body.pos.y += STD_SIZE_X;
+        NovoPos->body.pos.x += STD_SIZE_X;
     } 
     atual->prox = NovoPos;
 
+    }
+
+    int Colisaocobra(Jogo *j){
+        Celula* cabeca = j->snake;
+        Celula* atual = j->snake->prox; // começa do corpo
+        while(atual != NULL){
+            if(CheckCollisionRecs(cabeca->body.pos, atual->body.pos)){
+                return 1;
+            }
+            atual = atual->prox;
+        }
+        return 0;
     }
