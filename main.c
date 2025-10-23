@@ -10,8 +10,8 @@
 #define STD_SIZE_Y 40
 #define TEMPO 0.2
 #define COOLDOWN 0.2
-#define SNAKE_COLOR YELLOW
-#define FOOD_COLOR BLUE
+#define SNAKE_COLOR GREEN
+#define FOOD_COLOR RED
 
 int main(){
     Jogo jogo;
@@ -29,7 +29,8 @@ int main(){
         if (gameOver){
             DesenhaJogo(&jogo);
             AtualizaRodada(&jogo);
-            if (ColisaoFood(&jogo)){
+            ColisaoFood(&jogo); 
+            if(Colisaocobra(&jogo) == 1){
                 gameOver = 0;
             }
             if(ColisaoBorda(&jogo) == 1){
