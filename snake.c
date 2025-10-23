@@ -10,9 +10,8 @@
 #define STD_SIZE_Y 40
 #define TEMPO 0.2
 #define COOLDOWN 0.2
-#define SNAKE_COLOR YELLOW
-#define FOOD_COLOR BLUE
-
+#define SNAKE_COLOR GREEN
+#define FOOD_COLOR RED
 
 
 
@@ -20,11 +19,12 @@
 void IniciaBody(Jogo *j){
     j->snake = (Snake)malloc(sizeof(Celula));
     if(j->snake == NULL){
-
+        return;
     }
     j->snake->body.pos = (Rectangle) {LARGURA/2 - STD_SIZE_X, ALTURA - STD_SIZE_Y -10, STD_SIZE_X, STD_SIZE_Y};
     j->snake->body.direcao = 0;
     j->snake->body.color = SNAKE_COLOR;
+    j->snake->prox = NULL; // cabeça da cobra 
     }
 
 void IniciaBordas(Jogo *j){
@@ -53,7 +53,12 @@ void IniciaJogo(Jogo *j){
 
 // renomeado a variaveis para receber o corpo da cobra como lista j->snake->body
 void DesenhaBody(Jogo *j){
-    DrawRectangleRec(j->snake->body.pos, j->snake->body.color);
+    Celula* atual = j->snake;
+    while(atual != NULL){
+        DrawRectangleRec(atual->body.pos, atual->body.color);
+        atual = atual->prox; // move pro prox no da lista
+    }
+    
 
 }
 
@@ -97,10 +102,19 @@ void AtualizaDirecao(Jogo *j){
 
 // renomeado a variaveis para receber o corpo da cobra como lista j->snake->body
 void AtualizaPosBody(Jogo *j){
-// Precisa Implementar a lista para inserir no primeiro e apagar no ultimo
+    if(j->snake == NULL){
+        return;
+    }
+    // salvando posições antigas da cabeça (usando tipo rectangle da raylib para criar variavel com xy)
+    Rectangle Posicao_Anterior = j->snake->body.pos; // posicao da cabeça
+    int Direcao_Anterior = j->snake->body.direcao; // direcao da cabeça
+    // aux pra salvar posições e direções antigas
+    Rectangle Aux_Pos_Ant;
+    int Aux_Direcao_Ant;
 
-    /*if (j->snake->body.direcao == 0){
-        j->snake->body.pos. -= STD_SIZE_Y;
+    // move a cabeça de acordo com a direção
+    if (j->snake->body.direcao == 0){
+        j->snake->body.pos.y -= STD_SIZE_Y;
     }
     if (j->snake->body.direcao == 1){
         j->snake->body.pos.x += STD_SIZE_X;
@@ -110,7 +124,23 @@ void AtualizaPosBody(Jogo *j){
     }
     if (j->snake->body.direcao == 3){
         j->snake->body.pos.x -= STD_SIZE_X;
-    } */
+    } 
+
+    if(j->snake->prox != NULL){
+        Celula* atual = j->snake->prox; // apontando pro corpo (prox nó dps da cabeça)
+        while(atual != NULL){
+            Aux_Pos_Ant = atual->body.pos; // salvando pos do corpo
+            Aux_Direcao_Ant = atual->body.direcao; // save direcao do corpo
+
+            atual->body.pos = Posicao_Anterior; 
+            atual->body.direcao = Direcao_Anterior;
+
+            Posicao_Anterior = Aux_Pos_Ant;
+            Direcao_Anterior = Aux_Direcao_Ant;
+
+            atual = atual->prox; // att o rabo da cobra 
+        }
+    }
 }
 
 void AtualizaRodada(Jogo *j){
@@ -128,6 +158,7 @@ int ColisaoFood(Jogo *j){
     if (CheckCollisionRecs(j->snake->body.pos, j->food.pos)){
         IniciaFood(j);
         AumentaBody(j);
+        return 1;
     }
     return 0;
 }
@@ -143,26 +174,34 @@ int ColisaoBorda(Jogo *j){
 
 // função para aumentar o tamanho da cobra ao contrario do que ela come a maçã
 void AumentaBody(Jogo *j){
-    Celula* NovoPos = (Celula*)malloc(sizeof(Celula));
-    NovoPos->body.color = SNAKE_COLOR;
-
-    if (j->snake->body.direcao == 0){
-        NovoPos->body.pos.y += STD_SIZE_Y;
-    }
-
-    if (j->snake->body.direcao == 1){
-        NovoPos->body.pos.x -= STD_SIZE_X;
-    }
-
-    if (j->snake->body.direcao == 2){
-        NovoPos->body.pos.y -= STD_SIZE_Y;
+    Celula* NovoPos =(Celula*)malloc(sizeof(Celula));
+    if(NovoPos == NULL){
+        return;
     }
     
-    if (j->snake->body.direcao == 3){
-        NovoPos->body.pos.x += STD_SIZE_X;
+    
+    NovoPos->body.color = SNAKE_COLOR;
+    NovoPos->prox = NULL; // final da lista
+    Celula* atual = j->snake;
+    while(atual->prox != NULL){
+        atual = atual->prox; // percorre ate o rabo
     }
-    NovoPos->body.prox = NULL;
-}
 
+    NovoPos->body.pos = atual->body.pos; 
+    NovoPos->body.direcao = atual->body.direcao; 
+    int direcao_rabo = atual->body.direcao;
+    if(direcao_rabo == 0){
+        NovoPos->body.pos.y += STD_SIZE_Y;
+    } 
+    else if(direcao_rabo == 1){
+        NovoPos->body.pos.x -= STD_SIZE_X;
+    } 
+    else if(direcao_rabo == 2){
+        NovoPos->body.pos.y -= STD_SIZE_Y;
+    } 
+    else if(direcao_rabo == 3){
+        NovoPos->body.pos.y += STD_SIZE_X;
+    } 
+    atual->prox = NovoPos;
 
-
+    }
