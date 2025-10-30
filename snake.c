@@ -217,3 +217,14 @@ void AumentaBody(Jogo *j){
         }
         return 0;
     }
+
+void Desaloca(Jogo *j){
+    Celula* atual = j->snake;
+    Celula* prox;
+    while(atual != NULL){
+        prox = atual->prox;
+        free(atual);
+        atual = prox;
+    }
+    free(j);
+}
