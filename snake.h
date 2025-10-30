@@ -61,6 +61,7 @@ int ColisaoFood(Jogo *j);
 int ColisaoBorda(Jogo *j);
 void AumentaBody(Jogo *j);
 int Colisaocobra(Jogo *j);
+void Desaloca(Jogo *j);
 
 
 #endif
