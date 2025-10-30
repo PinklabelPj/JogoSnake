@@ -39,12 +39,15 @@ int main(){
         } else {
             DrawText("Game Over", 195, 300, 40, WHITE);
             if (IsKeyPressed(KEY_ENTER)){
+                Desaloca(&jogo);
                 IniciaJogo(&jogo);
                 gameOver = 1;
             }
         }
         EndDrawing();
     }
+    Desaloca(&jogo);
     CloseWindow();
+    
     return 0;
 }
