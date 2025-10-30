@@ -48,6 +48,6 @@ int main(){
     }
     Desaloca(&jogo);
     CloseWindow();
-    
+    Desaloca(&jogo);
     return 0;
 }
