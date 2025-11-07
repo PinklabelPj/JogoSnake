@@ -226,5 +226,4 @@ void Desaloca(Jogo *j){
         free(atual);
         atual = prox;
     }
-    free(j);
 }
