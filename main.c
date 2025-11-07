@@ -47,7 +47,6 @@ int main(){
         EndDrawing();
     }
     Desaloca(&jogo);
-    CloseWindow();
-    Desaloca(&jogo);
+    CloseWindow();    
     return 0;
 }
