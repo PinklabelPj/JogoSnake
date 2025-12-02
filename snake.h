@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <string.h>
 #define LARGURA 660
 #define ALTURA 660
 #define STD_SIZE_X 40
@@ -38,13 +39,22 @@ typedef struct Food{
     Color color;
 }Food;
 
+typedef struct Jogador{
+    char nickname[32];
+    int pontos;
+    int tam;
+} Jogador;
+
 typedef struct Jogo{
     Snake snake;
     Food food;
     Bordas bordas[4];
     double tempo;
     double cooldown;
+    Jogador jogador;
+    Jogador players[20]; // array pra armazena cada nick de jogador e sua pontuação
 }Jogo;
+
 
 void IniciaBody(Jogo *j);
 void IniciaBordas(Jogo *j);
@@ -62,6 +72,8 @@ int ColisaoBorda(Jogo *j);
 void AumentaBody(Jogo *j);
 int Colisaocobra(Jogo *j);
 void Desaloca(Jogo *j);
+void IniciaJogador(Jogo *j);
+void IniciaRank(Jogo *j);
 
 
 #endif
