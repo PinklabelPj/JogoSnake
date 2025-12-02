@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <string.h>
 #define LARGURA 660
 #define ALTURA 660
 #define STD_SIZE_X 40
@@ -12,6 +13,7 @@
 #define COOLDOWN 0.2
 #define SNAKE_COLOR GREEN
 #define FOOD_COLOR RED
+#define TOP_RANK 20
 
 
 
@@ -47,6 +49,7 @@ void IniciaJogo(Jogo *j){
     IniciaBordas(j);
     IniciaBody(j);
     IniciaFood(j);
+    IniciaJogador(j);
 
     j->tempo = GetTime();
 }
@@ -77,6 +80,7 @@ void DesenhaJogo(Jogo *j){
     DesenhaBordas(j);
     DesenhaBody(j);
     DesenhaFood(j);
+    DrawText(TextFormat("Pontuação: %d", j->jogador.pontos), 10, 10, 20, PINK);
 }
 
 // renomeado a variaveis para receber o corpo da cobra como lista j->snake->body
@@ -156,8 +160,9 @@ void AtualizaRodada(Jogo *j){
 // renomeado a variaveis para receber o corpo da cobra como lista j->snake->body
 int ColisaoFood(Jogo *j){
     if (CheckCollisionRecs(j->snake->body.pos, j->food.pos)){
-        IniciaFood(j);
+        j->jogador.pontos += 1;
         AumentaBody(j);
+        IniciaFood(j);
         return 1;
     }
     return 0;
@@ -227,3 +232,32 @@ void Desaloca(Jogo *j){
         atual = prox;
     }
 }
+
+void IniciaJogador(Jogo *j){
+    j->jogador.pontos = 0;
+    j->jogador.tam = 0;
+    for(int i=0; i < 32; i++){
+        j->jogador.nickname[i] = '\0';
+    }
+}
+void IniciaRank(Jogo *j){
+    FILE *pf=fopen("ranking.txt","r");
+    char linha[25];
+    for(int i=0; i<20;i++){
+        fgets(linha,25,pf);
+        strcpy(j->players[i].nickname, strtok(linha, ":"));
+        j->players[i].pontos = atoi(strtok(NULL, ":"));
+
+    }
+    fclose(pf);
+    for(int i=0;i<TOP_RANK;i++){
+        for(int k=i+1;k<TOP_RANK;k++){
+            if(j->players[k].pontos > j->players[i].pontos){
+                Jogador tmp = j->players[i];
+                j->players[i] = j->players[k];
+                j->players[k] = tmp;
+            }
+        }
+    }
+}
+
