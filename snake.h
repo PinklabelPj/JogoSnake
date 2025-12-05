@@ -14,6 +14,7 @@
 #define COOLDOWN 0.2
 #define SNAKE_COLOR GREEN
 #define FOOD_COLOR RED
+#define MAX_PLAYERS 21
 
 typedef struct Bordas{
     Rectangle pos;
@@ -52,7 +53,8 @@ typedef struct Jogo{
     double tempo;
     double cooldown;
     Jogador jogador;
-    Jogador players[20]; // array pra armazena cada nick de jogador e sua pontuação
+    int num_players;
+    Jogador players[MAX_PLAYERS]; // array pra armazena cada nick de jogador e sua pontuação
 }Jogo;
 
 
@@ -72,8 +74,11 @@ int ColisaoBorda(Jogo *j);
 void AumentaBody(Jogo *j);
 int Colisaocobra(Jogo *j);
 void Desaloca(Jogo *j);
+void QuickSortPlayers(Jogo *j, int left, int right);
 void IniciaJogador(Jogo *j);
-void IniciaRank(Jogo *j);
+void SalvaRanking(Jogo *j, const char *raking);
+void IniciaFoodSemBarreira(Jogo *j);    // comida fora das barreiras
+ 
 
 
 #endif
