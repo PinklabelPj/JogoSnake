@@ -1,4 +1,5 @@
 #include "snake.h"
+#include "maps.h"
 #include "raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +14,7 @@
 #define COOLDOWN 0.2
 #define SNAKE_COLOR GREEN
 #define FOOD_COLOR RED
-#define TOP_RANK 20
+#define MAX_PLAYERS 21
 
 
 
@@ -45,10 +46,12 @@ void IniciaFood(Jogo *j){
     j->food.color = FOOD_COLOR;
 }
 
+
 void IniciaJogo(Jogo *j){
     IniciaBordas(j);
     IniciaBody(j);
-    IniciaFood(j);
+    IniciaMapaAleatorio(j); // escolhe e inicializa um mapa aleatório
+    IniciaFoodSeguro(j);    // pra n ficar comida em cima da barreira
     IniciaJogador(j);
 
     j->tempo = GetTime();
@@ -78,6 +81,7 @@ void DesenhaBordas(Jogo *j){
 
 void DesenhaJogo(Jogo *j){
     DesenhaBordas(j);
+    DesenhaMapa(j);
     DesenhaBody(j);
     DesenhaFood(j);
     DrawText(TextFormat("Pontuação: %d", j->jogador.pontos), 10, 10, 20, PINK);
@@ -162,7 +166,7 @@ int ColisaoFood(Jogo *j){
     if (CheckCollisionRecs(j->snake->body.pos, j->food.pos)){
         j->jogador.pontos += 1;
         AumentaBody(j);
-        IniciaFood(j);
+        IniciaFoodSeguro(j); // gera nova comida sem colisão com barreiras
         return 1;
     }
     return 0;
@@ -240,24 +244,105 @@ void IniciaJogador(Jogo *j){
         j->jogador.nickname[i] = '\0';
     }
 }
+
+void QuickSortPlayers(Jogo *j, int left, int right){
+    if (j == NULL || left >= right) return;
+
+    int i = left;
+    int k = right;
+    int pivot = j->players[(left + right) / 2].pontos;
+
+    while (i <= k) {
+        while (j->players[i].pontos > pivot) i++;
+        while (j->players[k].pontos < pivot) k--;
+
+        if (i <= k) {
+            Jogador tmp = j->players[i];
+            j->players[i] = j->players[k];
+            j->players[k] = tmp;
+            i++; k--;
+        }
+    }
+
+    if (left < k) QuickSortPlayers(j, left, k);
+    if (i < right) QuickSortPlayers(j, i, right);
+}
+
 void IniciaRank(Jogo *j){
     FILE *pf=fopen("ranking.txt","r");
     char linha[25];
     for(int i=0; i<20;i++){
         fgets(linha,25,pf);
-        strcpy(j->players[i].nickname, strtok(linha, ":"));
-        j->players[i].pontos = atoi(strtok(NULL, ":"));
+        strcpy(j->players[i].nickname, strtok(linha, " "));
+        j->players[i].pontos = atoi(strtok(NULL, " "));
 
     }
     fclose(pf);
-    for(int i=0;i<TOP_RANK;i++){
-        for(int k=i+1;k<TOP_RANK;k++){
-            if(j->players[k].pontos > j->players[i].pontos){
-                Jogador tmp = j->players[i];
-                j->players[i] = j->players[k];
-                j->players[k] = tmp;
+}
+
+void SalvaRanking(Jogo *j, const char *ranking){
+    if (j == NULL) return;
+
+    FILE *fr = fopen("ranking.txt", "r");
+    char linha[128]; // quantidade de caracteres por linha
+    int count = 0;
+
+    /* Carrega até MAX_PLAYERS-1 jogadores do arquivo */
+    if (fr != NULL){
+        // lendo linha por linha do arquivo
+        while (count < MAX_PLAYERS - 1 && fgets(linha, sizeof(linha), fr) != NULL){ 
+            char *nick = strtok(linha, " "); 
+            char *pts  = strtok(NULL, " ");
+            if (nick != NULL && pts != NULL){
+                strcpy(j->players[count].nickname, nick);
+                j->players[count].nickname[sizeof(j->players[count].nickname) - 1] = '\0';
+                j->players[count].pontos = atoi(pts);
+                j->players[count].tam = 0;
+                count++;
             }
         }
+        fclose(fr);
+    }
+
+    /* limpa slots não usados */
+    for (int i = count; i < MAX_PLAYERS - 1; i++){
+        j->players[i].nickname[0] = '\0';
+        j->players[i].pontos = 0;
+        j->players[i].tam = 0;
+    }
+
+
+    /* Coloca o jogador atual sempre na posição 21 (índice 20) */
+    int ultimo = MAX_PLAYERS - 1;
+    strncpy(j->players[ultimo].nickname, j->jogador.nickname, sizeof(j->players[ultimo].nickname) - 1);
+    j->players[ultimo].nickname[sizeof(j->players[ultimo].nickname) - 1] = '\0';
+    j->players[ultimo].pontos = j->jogador.pontos;
+    j->players[ultimo].tam = j->jogador.tam;
+
+    /* Ordena os MAX_PLAYERS por pontos decrescentes */
+    QuickSortPlayers(j, 0, ultimo);
+
+    /* Atualiza número de players em memória (até MAX_PLAYERS) */
+    j->num_players = MAX_PLAYERS;
+
+    /* Regrava o arquivo com os top MAX_PLAYERS-1 (mantendo arquivo com os melhores 20) */
+    FILE *fw = fopen("ranking.txt", "w");
+    if (fw != NULL){
+        int gravacao = 0; // para contar quantas linhas foram gravadas no arquivo
+        for (int i = 0; i < MAX_PLAYERS && gravacao < MAX_PLAYERS - 1; i++){
+            if (j->players[i].nickname[0] == '\0'){ // pula nicknames vazios
+                continue;
+            }
+            fprintf(fw, "%s %d\n", j->players[i].nickname, j->players[i].pontos);
+            gravacao++;
+        }
+        fclose(fw);
     }
 }
+
+
+
+
+
+
 
