@@ -5,10 +5,10 @@ TARGET = snake
 all: snake
 
 snake: main.o snake.o maps.o
-	$(CC) $(CFLAGS) -o snake main.o snake.o maps.o -lraylib -lm -lpthread -ldl -lrt -lX11
+	$(CC) $(CFLAGS) -o snake main.o snake.o maps.o -lraylib -lm -lpthread -ldl -lrt -lX11 -lasound
 	
 main.o: main.c snake.h
-	 $(CC) $(CFLAGS) -c main.c
+	$(CC) $(CFLAGS) -c main.c
 
 snake.o: snake.c snake.h
 	$(CC) $(CFLAGS) -c snake.c
