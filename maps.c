@@ -1,12 +1,11 @@
 #include "maps.h"
 #include "raylib.h"
 #include <stdlib.h>
-
 // máximo de obstáculos por mapa pra n desenhar no mapa inteiro
 #define MAX_OBS 128
-
 static Rectangle obstaculos[MAX_OBS];
 static int obst_count = 0;
+//static evita conflito com os outros arquivos, como criei um .c e .h separado, foi melhor usar ele
 
 // cria um Rectangle alinhado à grade, funcao teve q ser pesquisada
 static Rectangle GradeRetangulo(int gx, int gy){
@@ -18,10 +17,10 @@ static Rectangle GradeRetangulo(int gx, int gy){
     return r;
 }
 
-// Preenche obstaculos
+// preenche obstaculos
 static void Mapa1(void){
     obst_count = 0;
-    //cruz no centro
+    //desenho de cruz no centro
     int coords[][2] = {
         {8,3},{8,4},{8,5},{8,6},{8,7},{8,8},{8,9},{8,10},
         {3,8},{4,8},{5,8},{6,8},{7,8},{9,8},{10,8},{11,8}
@@ -67,20 +66,24 @@ void IniciaMapaAleatorio(Jogo *j){
 void DesenhaMapa(Jogo *j){
     (void)j;
     for(int i=0;i<obst_count;i++){
-        DrawRectangleRec(obstaculos[i], DARKGRAY);
+        DrawRectangleRec(obstaculos[i], PURPLE);
     }
 }
 
-int ColisaoMapa(Jogo *j){
+int ColisaoMapa(Jogo *j){ // verifica se a cabeça da cobra nasce em um obstáculo
     if(j==NULL || j->snake==NULL) return 0;
     Rectangle cabeca = j->snake->body.pos;
     for(int i=0;i<obst_count;i++){
-        if(CheckCollisionRecs(cabeca, obstaculos[i])) return 1;
+        if(CheckCollisionRecs(cabeca, obstaculos[i])){
+            // som para colisão com a cobra
+            PlaySound(j->colisaoSound);
+            return 1;
+        }
     }
     return 0;
 }
 
-// verifica se a cobra colide com qualquer obstáculo atual
+// verifica se a cobra colide com algum obstáculo
 static int CobraColisao(Rectangle r){
     for(int i=0;i<obst_count;i++){
         if(CheckCollisionRecs(r, obstaculos[i])) return 1;
