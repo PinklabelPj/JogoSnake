@@ -17,28 +17,40 @@
 
 int main(){
     Jogo jogo;
-    jogo.num_players = 0; // inicializa contagem de players ao iniciar o programa
+    jogo.num_players = 0; // inicializa contagem de players ao iniciar o jogo
     int gameOver = 1;
     int Menu = 1; // 1 -> menu, 0 -> jogo rodando
-    int menuSelection = 0; // 0: Start, 1: Instructions, 2: Exit
+    int menuSelection = 0; // 0 -> Novo Jogo, 1 -> Ranking, 2 -> Sair
 
-    //Cria a janela;
+    //Cria a janela do jogo
     InitWindow(LARGURA, ALTURA, "Snake Game");
     SetTargetFPS(60);
     srand(time(NULL));
+    InitAudioDevice(); 
+    SetMasterVolume(1.0f);
+    jogo.backgroundMusic = LoadMusicStream("Assets/BackgroundSound.mp3"); 
+    PlayMusicStream(jogo.backgroundMusic);    
+    SetMusicVolume(jogo.backgroundMusic, 0.1f);
+    jogo.apple = LoadTexture("Assets/apple.png");
+    jogo.eatSound = LoadSound("Assets/Eat_Apple.mp3");    
+    SetSoundVolume(jogo.eatSound, 1.0f);
+    jogo.colisaoSound = LoadSound("Assets/Colisão_GameOver.mp3");
+    SetSoundVolume(jogo.colisaoSound, 0.5f); 
+    
 
-    // Inicializa uma vez; quando o jogador começar, chama IniciaJogo novamente
+    // Inicializa
     IniciaJogo(&jogo);
     IniciaJogador(&jogo);
     
 
     while (!WindowShouldClose()){
+        UpdateMusicStream(jogo.backgroundMusic);
         BeginDrawing();
         ClearBackground(BLACK);
         
 
         if (Menu){
-            // Navegação do menu
+            //menu
             if (IsKeyPressed(KEY_DOWN)){
                 menuSelection = (menuSelection + 1) % 3;
             }
@@ -48,16 +60,31 @@ int main(){
 
             // Desenha o menu
             DrawText("SNAKE GAME", 200, 80, 40, GREEN);
-            DrawText(menuSelection == 0 ? "Novo Jogo" : "  Novo Jogo", 220, 200, 30, WHITE);
-            DrawText(menuSelection == 1 ? "Ranking" : "  Ranking", 220, 260, 30, WHITE);
-            DrawText(menuSelection == 2 ? "Sair" : "  Sair", 220, 320, 30, WHITE);
+            if (menuSelection == 0) {
+                DrawText("Novo Jogo", 220, 200, 30, WHITE);
+            } else {
+                DrawText("  Novo Jogo", 220, 200, 30, WHITE);
+            }
+            
+            if (menuSelection == 1) {
+                DrawText("Ranking", 220, 260, 30, WHITE);
+            } else {
+                DrawText("  Ranking", 220, 260, 30, WHITE);
+            }
+            
+            if (menuSelection == 2) {
+                DrawText("Sair", 220, 320, 30, WHITE);
+            } else {
+                DrawText("  Sair", 220, 320, 30, WHITE);
+            }
             
 
-            if (IsKeyPressed(KEY_ENTER)){
+            if (IsKeyPressed(KEY_ENTER)){// seleciona a opção do menu
                 if (menuSelection == 0){
                     Desaloca(&jogo);
                     IniciaJogo(&jogo);
                     while(!WindowShouldClose()){
+                        UpdateMusicStream(jogo.backgroundMusic);
                         BeginDrawing();
                         ClearBackground(BLACK);
                         DrawText("Nome do Jogador:", LARGURA/3.4, ALTURA/4, 30, WHITE);
@@ -83,20 +110,24 @@ int main(){
                 } else if (menuSelection == 1){
                     // Vai para tela de ranking até o usuário apertar ENTER
                     while(!WindowShouldClose()){
+                        UpdateMusicStream(jogo.backgroundMusic);
                         BeginDrawing();
                         ClearBackground(BLACK);
-                        DrawText("Ranking", 200, 60, 40, LIGHTGRAY);
+                        DrawText("Ranking", 260, 20, 50, YELLOW);
+
+                        IniciaRank(&jogo); // desenha na aba rank no menu
+
                         EndDrawing();
                         if (IsKeyPressed(KEY_ENTER) || WindowShouldClose()) break;
                     }
                 } else if (menuSelection == 2){
-                    // Sair do jogo
+                    // sai do jogo
                     break;
                 }
             }
 
         } else {
-            // Jogo em execução
+            // jogo rodando
             if (gameOver){
                 DesenhaJogo(&jogo);
                 AtualizaRodada(&jogo);
@@ -104,32 +135,34 @@ int main(){
                 if(Colisaocobra(&jogo) == 1){
                     gameOver = 0;
                 }
-                if(ColisaoBorda(&jogo) == 1){
-                    gameOver = 0;
-                }
                 if(ColisaoMapa(&jogo) == 1){//se bate em barreira, perde
                     gameOver = 0;
                 }
             } else {
-                DrawText("Game Over", 195, 300, 40, WHITE);
-                DrawText(TextFormat("Pontos: %d", jogo.jogador.pontos), 230, 350, 20, WHITE);
-                DrawText("Press ENTER to return to menu", 120, 400, 20, WHITE);
+                DrawText("Game Over", 205, 200, 50, RED);
+                DrawText(TextFormat("%s", jogo.jogador.nickname), 120, 310, 20, WHITE);
+                DrawText(TextFormat("Pontos: %d", jogo.jogador.pontos), 120, 350, 20, WHITE);
+                DrawText("Pressione Enter para retornar ao menu", 120, 400, 20, WHITE);
                 if (IsKeyPressed(KEY_ENTER)){
-                    /* salva ranking (arquivo + vetor em memória) antes de resetar o jogo */
+                    // salva ranking (arquivo + vetor em memória) antes de resetar o jogo (ajuda do miguelito)
                     SalvaRanking(&jogo, "ranking.txt");
                     Desaloca(&jogo);
                     IniciaJogo(&jogo);
                     gameOver = 1;
-                    Menu = 1; // volta para o menu
+                    Menu = 1; // volta pro o menu
                 }
             }
         }
 
         EndDrawing();
     }
-
+    
+    UnloadMusicStream(jogo.backgroundMusic);
+    UnloadSound(jogo.eatSound);
+    UnloadSound(jogo.colisaoSound);
+    CloseAudioDevice();
+    UnloadTexture(jogo.apple);
     Desaloca(&jogo);
     CloseWindow();
-    Desaloca(&jogo);
     return 0;
 }
